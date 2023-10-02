@@ -1,25 +1,40 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-class Red:
+class redImagen:
     def __init__(self):
-        # Cargar la base de datos MNIST
-        (self.train_dataset, self.test_dataset), self.info = tfds.load( 'mnist', split=['train', 'test'],with_info=True, as_supervised=True,)
+        # Cargar MNIST
+        (self.lista_entrenar, self.lista_test), self.info = tfds.load(
+            'mnist',
+            split=['train', 'test'],
+            with_info=True,
+            as_supervised=True,
+        )
 
-        # Preprocesar los datos
-        def pre(image, label):
-            image = tf.image.convert_image_dtype(image, tf.float32)  # Normalizar las imágenes
-            image = tf.image.grayscale_to_rgb(image)  # Convertir a 3 canales (RGB)
-            image = tf.image.resize(image, (28, 28))  # Redimensionar a 28x28
-            return image, label
+        # Preprocesar
+        def preprocesar(imagen, etiqueta):
+            imagen = tf.image.convert_image_dtype(imagen, tf.float32)
+            imagen = tf.image.resize(imagen, (28, 28))
+            return imagen, etiqueta
 
-        BATCH_SIZE = 64
-        self.train_dataset = self.train_dataset.map(pre).batch(BATCH_SIZE)
-        self.test_dataset = self.test_dataset.map(pre).batch(BATCH_SIZE)
+        TAMANO = 64
+        self.lista_entrenar = self.lista_entrenar.map(preprocesar).batch(TAMANO)
+        self.lista_test = self.lista_test.map(preprocesar).batch(TAMANO)
 
-        # Crear el modelo
-        self.model = tf.keras.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 3)),
+        # Crear
+        self.modelo = self._construir_modelo()
+    
+    def probar(self):
+        self.entrenar(epoc=10)
+        self.evaluar()
+        self.guardar_modelo()
+        
+    def entrenar(self, epoc=10):
+        self.modelo.fit(self.lista_entrenar, epochs=epoc)
+
+    def _construir_modelo(self):
+        modelo = tf.keras.Sequential([
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -27,25 +42,17 @@ class Red:
             tf.keras.layers.Dense(100, activation='relu'),
             tf.keras.layers.Dense(10, activation='softmax')
         ])
+        modelo.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        return modelo
 
-        # Compilar el modelo
-        self.model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    def guardar_modelo(self, nombre='red.h5'):
+        self.modelo.save(nombre)
         
-    def iniciar(self):
-        self.entrenar(epochs=10)
-        self.evaluar()
-        self.guardar_modelo()
 
     def evaluar(self):
-        test_loss, test_accuracy = self.model.evaluate(self.test_dataset)
-        print(f'Precisión en el conjunto de prueba: {test_accuracy * 100:.2f}%')
-        
-    def entrenar(self, epochs=10):
-        self.model.fit(self.train_dataset, epochs=epochs)
-
-    def guardar_modelo(self, filename='red.h5'):
-        self.model.save(filename)
+        perdida_prueba, pre_test = self.modelo.evaluate(self.lista_test)
+        print(f'Precisión las pruebas: {pre_test * 100:.2f}%')
 
 
-comprobar = Red()
-comprobar.iniciar()
+red = redImagen()
+red.probar()

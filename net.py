@@ -1,10 +1,5 @@
 import numpy as np
 
-# Datos para usarse 
-entradas = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-salidas = np.array([[1], [0], [0], [1]])
-testing = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-
 class Neuronas:
     def __init__(self, entradas, salidas, testing):
         # Función  sigmoide
@@ -60,19 +55,27 @@ class Neuronas:
 
 
 
+# Datos para usarse 
+entradas = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 
-probar = Neuronas(entradas, salidas, testing)
+salidas = np.array([[1], [0], [0], [1]])
+        
+testing = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+
+
+
+neural_network = Neuronas(entradas, salidas, testing)
 
 # Entrenar la red neuronal
-probar.entrenar()
+neural_network.entrenar()
 
-# Resultado final
+# Resultado final después del entrenamiento
 print("Entrenamiento:")
-print(probar.preparar(probar.X))
+print(neural_network.preparar(neural_network.X))
 
-entradas_test = probar.testing
+entradas_test = neural_network.testing
 
 print("Predicciones:")
 for entrada in entradas_test:
-    prediction = probar.preparar(entrada)
+    prediction = neural_network.preparar(entrada)
     print(entrada, "->", prediction)
